@@ -1,0 +1,726 @@
+/* client/src/styles/App.css */
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap");
+
+:root {
+  /* Modern Color Palette - Warm & Professional */
+  --primary-color: #ff6b6b;
+  --primary-color-dark: #ee5a24;
+  --secondary-color: #54a0ff;
+  --accent-color: #5f27cd;
+  --success-color: #00d2d3;
+  --warning-color: #ff9ff3;
+  --danger-color: #ff3838;
+
+  /* Backgrounds */
+  --background-color: #0f0f23;
+  --surface-color: #1a1a2e;
+  --card-color: #16213e;
+  --overlay-color: rgba(255, 255, 255, 0.05);
+
+  /* Text Colors */
+  --text-color: #eee;
+  --text-secondary: #a0a0a0;
+  --text-muted: #666;
+
+  /* Effects */
+  --gradient-primary: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  --gradient-secondary: linear-gradient(135deg, #54a0ff 0%, #5f27cd 100%);
+  --gradient-success: linear-gradient(135deg, #00d2d3 0%, #54a0ff 100%);
+
+  /* Shadows & Effects */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+  --shadow-glow: 0 0 20px rgba(255, 107, 107, 0.3);
+
+  --border-radius: 16px;
+  --border-radius-sm: 8px;
+  --border-radius-lg: 24px;
+  --font-family: "Poppins", sans-serif;
+}
+
+body {
+  font-family: var(--font-family);
+  background: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* Navbar Styling */
+.custom-navbar {
+  background: linear-gradient(135deg, var(--surface-color), var(--card-color));
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 107, 107, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.brand-logo {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--primary-color) !important;
+  text-decoration: none !important;
+  transition: all 0.3s ease;
+}
+
+.brand-logo:hover {
+  color: var(--accent-color) !important;
+  transform: translateY(-2px);
+}
+
+.nav-link-custom {
+  color: var(--text-color) !important;
+  font-weight: 500;
+  padding: 0.5rem 1rem !important;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  margin: 0 0.2rem;
+}
+
+.nav-link-custom:hover {
+  color: var(--primary-color) !important;
+  background: rgba(255, 107, 107, 0.1);
+  transform: translateY(-2px);
+}
+
+.navbar-toggler {
+  border: none;
+  color: var(--primary-color);
+}
+
+.navbar-toggler:focus {
+  box-shadow: 0 0 0 0.2rem rgba(255, 107, 107, 0.25);
+}
+
+/* Dashboard Container */
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+/* Hero header - Completely Redesigned */
+.dashboard-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3rem;
+  padding: 3rem 2rem;
+  background: var(--gradient-primary);
+  border-radius: var(--border-radius-lg);
+  color: white;
+  box-shadow: var(--shadow-glow);
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.08"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  pointer-events: none;
+}
+
+.dashboard-hero .dashboard-title {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: -2px;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-hero .dashboard-subtitle {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  font-weight: 400;
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-hero .dashboard-date {
+  font-size: 1rem;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 1;
+}
+
+/* Stat cards - Modern Glassmorphic Design */
+.stat-card {
+  background: var(--card-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  margin-bottom: 2rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.stat-card:hover::before {
+  left: 100%;
+}
+
+.stat-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(255, 107, 107, 0.3);
+}
+
+.stat-card .icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: var(--primary-color);
+  filter: drop-shadow(0 0 10px rgba(255, 107, 107, 0.5));
+}
+
+.stat-card .stat-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.stat-card .stat-label {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Recent sessions - Modern Card Design */
+.session-list {
+  margin-top: 3rem;
+}
+
+.session-card {
+  background: var(--card-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.session-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--gradient-primary);
+  transition: width 0.3s ease;
+}
+
+.session-card:hover::before {
+  width: 8px;
+}
+
+.session-card:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(255, 107, 107, 0.3);
+}
+
+.session-card .session-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.session-card .session-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Cards - Updated Design */
+.card {
+  border: none !important;
+  border-radius: var(--border-radius) !important;
+  background: var(--card-color) !important;
+  box-shadow: var(--shadow-md) !important;
+  transition: all 0.3s ease !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: var(--shadow-lg) !important;
+  border-color: rgba(255, 107, 107, 0.3) !important;
+}
+
+.card-header {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  font-weight: 600 !important;
+  color: var(--text-color) !important;
+  padding: 1.5rem !important;
+}
+
+.card-body {
+  color: var(--text-color) !important;
+  padding: 1.5rem !important;
+}
+
+/* Buttons - Modern Design */
+.btn-primary {
+  background: var(--gradient-primary) !important;
+  border: none !important;
+  border-radius: var(--border-radius-sm) !important;
+  font-weight: 600 !important;
+  padding: 0.75rem 1.5rem !important;
+  transition: all 0.3s ease !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md) !important;
+  filter: brightness(1.1) !important;
+}
+
+.btn-outline-danger {
+  border: 1px solid var(--danger-color) !important;
+  color: var(--danger-color) !important;
+  background: transparent !important;
+  border-radius: var(--border-radius-sm) !important;
+  transition: all 0.3s ease !important;
+}
+
+.btn-outline-danger:hover {
+  background: var(--danger-color) !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* Modal */
+.modal-content {
+  border-radius: var(--border-radius) !important;
+  background: var(--card-color) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.modal-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: var(--text-color) !important;
+}
+
+.modal-body {
+  color: var(--text-color) !important;
+}
+
+.modal-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Badges */
+.badge {
+  border-radius: var(--border-radius-sm) !important;
+  font-weight: 500 !important;
+  padding: 0.5rem 1rem !important;
+}
+
+/* Text Colors */
+.text-muted {
+  color: var(--text-secondary) !important;
+}
+
+/* Animations */
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color-dark);
+}
+
+/* Study Timer Specific Styles */
+.study-timer-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+.active-session-card {
+  background: var(--gradient-primary);
+  color: white;
+  text-align: center;
+  padding: 3rem 2rem;
+  border-radius: var(--border-radius-lg);
+  margin-bottom: 3rem;
+  box-shadow: var(--shadow-glow);
+  position: relative;
+  overflow: hidden;
+}
+
+.active-session-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="timer-pattern" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23timer-pattern)"/></svg>');
+  pointer-events: none;
+}
+
+.timer-display {
+  font-size: 4rem;
+  font-weight: 800;
+  letter-spacing: 4px;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  margin: 1rem 0;
+  position: relative;
+  z-index: 1;
+}
+
+.subject-card {
+  background: var(--card-color);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.subject-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.subject-card:hover::before {
+  opacity: 0.1;
+}
+
+.subject-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  border-color: rgba(255, 107, 107, 0.5);
+  box-shadow: var(--shadow-lg);
+}
+
+.subject-card.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.subject-card .subject-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.subject-card h5 {
+  color: var(--text-color);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.subject-card p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.text-gradient {
+  background: linear-gradient(
+    45deg,
+    var(--primary-color),
+    var(--primary-color-dark)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.card {
+  border: none !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 4px 24px 0 rgba(99, 102, 241, 0.08) !important;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px 0 rgba(99, 102, 241, 0.12) !important;
+}
+
+.card-header {
+  background-color: transparent !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  font-weight: 600;
+}
+
+/* Modal */
+.modal-content {
+  border-radius: 1.25rem !important;
+  box-shadow: 0 8px 32px 0 rgba(99, 102, 241, 0.12) !important;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-color-dark);
+  border-color: var(--primary-color-dark);
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dashboard Specific */
+.stat-card {
+  background: var(--surface-color);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--text-color);
+}
+
+.stat-card .icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.stat-card .stat-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+}
+
+.stat-card .stat-label {
+  font-size: 1rem;
+  color: var(--text-muted-color);
+}
+
+/* Study Timer Specific */
+.subject-card {
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.2s ease-in-out;
+}
+
+.subject-card:hover {
+  border-color: var(--primary-color);
+  background-color: #f1f5f9;
+}
+
+.subject-card.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.active-session-card {
+  background: linear-gradient(
+    45deg,
+    var(--primary-color),
+    var(--primary-color-dark)
+  );
+  color: white;
+  text-align: center;
+  padding: 2rem;
+  border-radius: var(--border-radius);
+}
+
+.active-session-card .timer-display {
+  font-size: 4rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+/* Authentication Pages Styling */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-color);
+  padding: 2rem;
+}
+
+.auth-card {
+  background: var(--card-color);
+  border: 1px solid rgba(255, 107, 107, 0.2);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(20px);
+  padding: 3rem;
+  width: 100%;
+  max-width: 400px;
+  transition: all 0.3s ease;
+}
+
+.auth-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-glow);
+}
+
+.auth-card .card-body {
+  background: transparent;
+  padding: 0;
+}
+
+.auth-card h3 {
+  color: var(--primary-color);
+  font-weight: 700;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-size: 2rem;
+}
+
+.auth-card .form-label {
+  color: var(--text-color);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.auth-card .form-control {
+  background: var(--surface-color);
+  border: 1px solid rgba(255, 107, 107, 0.2);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-color);
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.auth-card .form-control:focus {
+  background: var(--surface-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(255, 107, 107, 0.25);
+  color: var(--text-color);
+}
+
+.auth-card .form-control::placeholder {
+  color: var(--text-muted);
+}
+
+.auth-card .btn-primary {
+  background: var(--gradient-primary);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.auth-card .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+
+.auth-card .btn-primary:disabled {
+  opacity: 0.6;
+  transform: none;
+}
+
+.auth-card .alert {
+  background: rgba(255, 56, 56, 0.1);
+  border: 1px solid rgba(255, 56, 56, 0.3);
+  color: var(--danger-color);
+  border-radius: var(--border-radius-sm);
+}
+
+.auth-card a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.auth-card a:hover {
+  color: var(--accent-color);
+  text-decoration: underline;
+}
