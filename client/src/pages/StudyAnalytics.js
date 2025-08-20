@@ -34,6 +34,7 @@ const StudyAnalytics = () => {
   const [analytics, setAnalytics] = useState(null);
   const [dailySummary, setDailySummary] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [periodLoading, setPeriodLoading] = useState(false);
   const [error, setError] = useState("");
   const [period, setPeriod] = useState("week");
 
@@ -49,13 +50,19 @@ const StudyAnalytics = () => {
   };
 
   useEffect(() => {
-    fetchAnalytics();
-    fetchDailySummary();
+    if (period) {
+      const fetchData = async () => {
+        setPeriodLoading(true);
+        await Promise.all([fetchAnalytics(), fetchDailySummary()]);
+        setPeriodLoading(false);
+      };
+      fetchData();
+    }
   }, [period]);
 
   const fetchAnalytics = async () => {
     try {
-      setLoading(true);
+      if (!periodLoading) setLoading(true);
       const response = await fetch(
         `/api/study-sessions/analytics?period=${period}`,
         {
@@ -69,7 +76,7 @@ const StudyAnalytics = () => {
     } catch (err) {
       setError("Failed to fetch analytics");
     } finally {
-      setLoading(false);
+      if (!periodLoading) setLoading(false);
     }
   };
 
@@ -159,19 +166,31 @@ const StudyAnalytics = () => {
               <Button
                 variant={period === "today" ? "primary" : "outline-primary"}
                 onClick={() => setPeriod("today")}
+                disabled={periodLoading}
               >
+                {periodLoading && period === "today" ? (
+                  <Spinner as="span" size="sm" className="me-1" />
+                ) : null}
                 Today
               </Button>
               <Button
                 variant={period === "week" ? "primary" : "outline-primary"}
                 onClick={() => setPeriod("week")}
+                disabled={periodLoading}
               >
+                {periodLoading && period === "week" ? (
+                  <Spinner as="span" size="sm" className="me-1" />
+                ) : null}
                 Week
               </Button>
               <Button
                 variant={period === "month" ? "primary" : "outline-primary"}
                 onClick={() => setPeriod("month")}
+                disabled={periodLoading}
               >
+                {periodLoading && period === "month" ? (
+                  <Spinner as="span" size="sm" className="me-1" />
+                ) : null}
                 Month
               </Button>
             </ButtonGroup>

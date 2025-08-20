@@ -20,16 +20,18 @@ app.get("/", (req, res) => {
   res.send("Learning Tracker Pro API");
 });
 
+app.get("/api/health", (req, res) => {
+  res.json({ status: "Server is running", timestamp: new Date() });
+});
+
 // MongoDB connection (non-blocking)
 mongoose
   .connect(MONGO_URI)
   .then(() => {
-    console.log("MongoDB connected");
     loadRoutes();
   })
   .catch((err) => {
     console.error("MongoDB connection error:", err.message);
-    console.log("Starting without MongoDB - limited functionality");
     loadFallbackRoutes();
   });
 
@@ -38,7 +40,6 @@ function loadRoutes() {
     // Routes
     app.use("/api/auth", require("./routes/auth"));
     app.use("/api/study-sessions", require("./routes/studySessions"));
-    console.log("All routes loaded successfully");
   } catch (error) {
     console.error("Error loading routes:", error);
     loadFallbackRoutes();
@@ -46,6 +47,13 @@ function loadRoutes() {
 }
 
 function loadFallbackRoutes() {
+  try {
+    // Load auth routes with mock functionality
+    app.use("/api/auth", require("./routes/auth"));
+  } catch (authError) {
+    console.error("Error loading auth routes:", authError);
+  }
+
   // Fallback routes when MongoDB is not available
   app.post("/api/seed/seed", (req, res) => {
     res.status(500).json({
@@ -53,6 +61,14 @@ function loadFallbackRoutes() {
       message:
         "MongoDB is not available. Please install MongoDB or use MongoDB Atlas.",
       error: "Database connection failed",
+    });
+  });
+
+  app.get("/api/study-sessions/*", (req, res) => {
+    res.status(503).json({
+      success: false,
+      message: "Study sessions require database connection",
+      error: "MongoDB connection required",
     });
   });
 

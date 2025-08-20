@@ -10,9 +10,9 @@ import {
 } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 
-const Login = () => {
+const Login = ({ setIsAuthenticated, setUser }) => {
   const [formData, setFormData] = useState({
-    email: "john@example.com",
+    email: "bikash@example.com",
     password: "password123",
   });
   const [error, setError] = useState("");
@@ -42,6 +42,8 @@ const Login = () => {
       if (response.ok) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
+        setIsAuthenticated(true);
+        setUser(data.user);
         navigate("/dashboard");
       } else {
         setError(data.message || "Login failed");

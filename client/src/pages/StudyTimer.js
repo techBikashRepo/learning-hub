@@ -41,6 +41,7 @@ const studySubjects = [
 const StudyTimer = () => {
   const [activeSession, setActiveSession] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState("");
   const [showEndModal, setShowEndModal] = useState(false);
   const [notes, setNotes] = useState("");
@@ -50,11 +51,24 @@ const StudyTimer = () => {
   const [weeklyProgress, setWeeklyProgress] = useState({});
   const [streakCount, setStreakCount] = useState(0);
 
+  // Topics tracking state
+  const [topics, setTopics] = useState([]);
+  const [newTopic, setNewTopic] = useState("");
+  const [topicStatus, setTopicStatus] = useState(""); // "completed", "in-progress", "planned"
+
   useEffect(() => {
-    checkActiveSession();
-    fetchTodayStats();
-    fetchWeeklyProgress();
-    calculateStreak();
+    const initializeData = async () => {
+      setInitialLoading(true);
+      await Promise.all([
+        checkActiveSession(),
+        fetchTodayStats(),
+        fetchWeeklyProgress(),
+        calculateStreak(),
+      ]);
+      setInitialLoading(false);
+    };
+
+    initializeData();
   }, []);
 
   useEffect(() => {
@@ -78,9 +92,13 @@ const StudyTimer = () => {
   }, [activeSession]);
 
   const formatTime = (seconds) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
+    // Ensure seconds is a valid number
+    const validSeconds =
+      isNaN(seconds) || seconds < 0 ? 0 : Math.floor(seconds);
+
+    const hours = Math.floor(validSeconds / 3600);
+    const minutes = Math.floor((validSeconds % 3600) / 60);
+    const secs = validSeconds % 60;
 
     if (hours > 0) {
       return `${hours}h ${minutes}m ${secs}s`;
@@ -98,10 +116,20 @@ const StudyTimer = () => {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-      const data = await response.json();
-      setActiveSession(data);
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data._id) {
+          setActiveSession(data);
+        } else {
+          setActiveSession(null);
+        }
+      } else {
+        setActiveSession(null);
+      }
     } catch (err) {
       console.error("Error checking active session:", err);
+      setActiveSession(null);
     }
   };
 
@@ -271,6 +299,46 @@ const StudyTimer = () => {
     }
   };
 
+  // Topics Management Functions
+  const addTopic = () => {
+    if (newTopic.trim() && topicStatus) {
+      const topic = {
+        id: Date.now(),
+        name: newTopic.trim(),
+        status: topicStatus,
+        timestamp: new Date().toLocaleTimeString(),
+      };
+      setTopics([...topics, topic]);
+      setNewTopic("");
+      setTopicStatus("");
+    }
+  };
+
+  const updateTopicStatus = (topicId, newStatus) => {
+    setTopics(
+      topics.map((topic) =>
+        topic.id === topicId ? { ...topic, status: newStatus } : topic
+      )
+    );
+  };
+
+  const removeTopic = (topicId) => {
+    setTopics(topics.filter((topic) => topic.id !== topicId));
+  };
+
+  const getTopicStatusColor = (status) => {
+    switch (status) {
+      case "completed":
+        return "success";
+      case "in-progress":
+        return "warning";
+      case "planned":
+        return "info";
+      default:
+        return "secondary";
+    }
+  };
+
   const getWeeklySchedule = () => {
     const schedule = {
       Monday: ["AWS (2h)", "System Design (1h)"],
@@ -290,90 +358,231 @@ const StudyTimer = () => {
 
   return (
     <div className="study-timer-container fade-in-up">
-      {error && <Alert variant="danger">{error}</Alert>}
-
-      {activeSession ? (
-        <Card className="active-session-card text-center">
-          <Card.Body>
-            <h2 className="mb-3">
-              <Clock className="me-2" />
-              Studying: {activeSession.subject}
-            </h2>
-            <div className="timer-display mb-4">{formatTime(timer)}</div>
-            <Button
-              variant="light"
-              size="lg"
-              onClick={() => setShowEndModal(true)}
-              disabled={loading}
-            >
-              <Square className="me-2" />
-              End Session
-            </Button>
-          </Card.Body>
-        </Card>
+      {initialLoading ? (
+        <div className="text-center py-5">
+          <Spinner animation="border" variant="primary" size="lg" />
+          <p className="mt-3">Loading your study session...</p>
+        </div>
       ) : (
-        <div>
-          <h2 className="text-center mb-4">Choose a Subject to Begin</h2>
-          <Row>
-            {studySubjects.map((subject) => (
-              <Col md={6} lg={3} className="mb-4" key={subject.name}>
-                <Card
-                  className={`subject-card h-100 ${loading ? "disabled" : ""}`}
-                  onClick={() => !loading && startSession(subject.name)}
-                >
+        <>
+          {error && <Alert variant="danger">{error}</Alert>}
+
+          {activeSession ? (
+            <Row>
+              {/* Active Session Timer */}
+              <Col lg={6}>
+                <Card className="active-session-card text-center">
                   <Card.Body>
-                    <div className="subject-icon mb-3">{subject.icon}</div>
-                    <h5>{subject.name}</h5>
-                    <p className="text-muted">
-                      Target: {subject.target} min/day
-                    </p>
+                    <h2 className="mb-3">
+                      <Clock className="me-2" />
+                      Studying: {activeSession.subject}
+                    </h2>
+                    <div className="timer-display mb-4">
+                      {formatTime(timer)}
+                    </div>
                     <Button
-                      variant="primary"
-                      className="mt-auto"
+                      variant="light"
+                      size="lg"
+                      onClick={() => setShowEndModal(true)}
                       disabled={loading}
                     >
-                      <Play className="me-1" size={16} />
-                      Start
+                      <Square className="me-2" />
+                      End Session
                     </Button>
                   </Card.Body>
                 </Card>
               </Col>
-            ))}
-          </Row>
-        </div>
-      )}
 
-      {/* End Session Modal */}
-      <Modal show={showEndModal} onHide={() => setShowEndModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>End Study Session</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>
-            You studied <strong>{activeSession?.subject}</strong> for{" "}
-            <strong>{formatTime(timer)}</strong>.
-          </p>
-          <Form.Group>
-            <Form.Label>Add notes about your session:</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g., 'Finished chapter 3 of AWS course.'"
-            />
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowEndModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={endSession} disabled={loading}>
-            {loading ? <Spinner as="span" size="sm" className="me-2" /> : null}
-            Confirm & End
-          </Button>
-        </Modal.Footer>
-      </Modal>
+              {/* Topics Tracker */}
+              <Col lg={6}>
+                <Card className="topics-tracker-card h-100">
+                  <Card.Header>
+                    <h5 className="mb-0">
+                      <BookOpen className="me-2" />
+                      Topics Coverage
+                    </h5>
+                  </Card.Header>
+                  <Card.Body>
+                    {/* Add New Topic */}
+                    <div className="mb-3">
+                      <Row>
+                        <Col sm={5}>
+                          <Form.Control
+                            type="text"
+                            placeholder="Add topic..."
+                            value={newTopic}
+                            onChange={(e) => setNewTopic(e.target.value)}
+                            size="sm"
+                          />
+                        </Col>
+                        <Col sm={4}>
+                          <Form.Select
+                            size="sm"
+                            value={topicStatus}
+                            onChange={(e) => setTopicStatus(e.target.value)}
+                          >
+                            <option value="">Status...</option>
+                            <option value="planned">📋 Planned</option>
+                            <option value="in-progress">⏳ In Progress</option>
+                            <option value="completed">✅ Completed</option>
+                          </Form.Select>
+                        </Col>
+                        <Col sm={3}>
+                          <Button
+                            size="sm"
+                            variant="primary"
+                            onClick={addTopic}
+                            disabled={!newTopic.trim() || !topicStatus}
+                            className="w-100"
+                          >
+                            Add
+                          </Button>
+                        </Col>
+                      </Row>
+                    </div>
+
+                    {/* Topics List */}
+                    <div
+                      className="topics-list"
+                      style={{ maxHeight: "300px", overflowY: "auto" }}
+                    >
+                      {topics.length === 0 ? (
+                        <div className="text-center text-muted py-3">
+                          <BookOpen size={32} className="mb-2" />
+                          <p>Start adding topics you're covering!</p>
+                        </div>
+                      ) : (
+                        topics.map((topic) => (
+                          <div
+                            key={topic.id}
+                            className="topic-item d-flex justify-content-between align-items-center mb-2 p-2 rounded"
+                            style={{ backgroundColor: "var(--surface-color)" }}
+                          >
+                            <div>
+                              <span className="topic-name">{topic.name}</span>
+                              <small className="text-muted d-block">
+                                {topic.timestamp}
+                              </small>
+                            </div>
+                            <div>
+                              <Badge
+                                bg={getTopicStatusColor(topic.status)}
+                                className="me-2"
+                                style={{ cursor: "pointer" }}
+                                onClick={() => {
+                                  const statuses = [
+                                    "planned",
+                                    "in-progress",
+                                    "completed",
+                                  ];
+                                  const currentIndex = statuses.indexOf(
+                                    topic.status
+                                  );
+                                  const nextStatus =
+                                    statuses[
+                                      (currentIndex + 1) % statuses.length
+                                    ];
+                                  updateTopicStatus(topic.id, nextStatus);
+                                }}
+                              >
+                                {topic.status === "planned" && "📋 Planned"}
+                                {topic.status === "in-progress" &&
+                                  "⏳ Progress"}
+                                {topic.status === "completed" && "✅ Done"}
+                              </Badge>
+                              <Button
+                                size="sm"
+                                variant="outline-danger"
+                                onClick={() => removeTopic(topic.id)}
+                                style={{ padding: "2px 6px" }}
+                              >
+                                ×
+                              </Button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+          ) : (
+            <div>
+              <h2 className="text-center mb-4">Choose a Subject to Begin</h2>
+              <Row>
+                {studySubjects.map((subject) => (
+                  <Col md={6} lg={3} className="mb-4" key={subject.name}>
+                    <Card
+                      className={`subject-card h-100 ${
+                        loading ? "disabled" : ""
+                      }`}
+                      onClick={() => !loading && startSession(subject.name)}
+                    >
+                      <Card.Body>
+                        <div className="subject-icon mb-3">{subject.icon}</div>
+                        <h5>{subject.name}</h5>
+                        <p className="text-muted">
+                          Target: {subject.target} min/day
+                        </p>
+                        <Button
+                          variant="primary"
+                          className="mt-auto"
+                          disabled={loading}
+                        >
+                          <Play className="me-1" size={16} />
+                          Start
+                        </Button>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            </div>
+          )}
+
+          {/* End Session Modal */}
+          <Modal
+            show={showEndModal}
+            onHide={() => setShowEndModal(false)}
+            centered
+          >
+            <Modal.Header closeButton>
+              <Modal.Title>End Study Session</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <p>
+                You studied <strong>{activeSession?.subject}</strong> for{" "}
+                <strong>{formatTime(timer)}</strong>.
+              </p>
+              <Form.Group>
+                <Form.Label>Add notes about your session:</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="e.g., 'Finished chapter 3 of AWS course.'"
+                />
+              </Form.Group>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button
+                variant="secondary"
+                onClick={() => setShowEndModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={endSession} disabled={loading}>
+                {loading ? (
+                  <Spinner as="span" size="sm" className="me-2" />
+                ) : null}
+                Confirm & End
+              </Button>
+            </Modal.Footer>
+          </Modal>
+        </>
+      )}
     </div>
   );
 };

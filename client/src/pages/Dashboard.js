@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Card, Badge, Button, Modal } from "react-bootstrap";
+import { Row, Col, Card, Badge, Button, Modal, Alert } from "react-bootstrap";
 import {
   AreaChart,
   Area,
@@ -19,7 +19,11 @@ import {
   Trash2,
   Timer,
   Trophy,
+  Quote,
+  Sparkles,
 } from "lucide-react";
+import { MotivationalQuotesService } from "../services/motivationalQuotes";
+import { MotivationalImagesService } from "../services/motivationalImages";
 
 const Dashboard = () => {
   const [analytics, setAnalytics] = useState(null);
@@ -31,6 +35,13 @@ const Dashboard = () => {
   const [deletingSessionId, setDeletingSessionId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState(null);
+
+  // Motivational quotes state
+  const [dailyQuote, setDailyQuote] = useState(null);
+  const [motivationalMessage, setMotivationalMessage] = useState("");
+
+  // Motivational image state
+  const [dailyImage, setDailyImage] = useState(null);
 
   const COLORS = [
     "#ff6b6b",
@@ -45,7 +56,26 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
+    initializeMotivationalContent();
   }, []);
+
+  const initializeMotivationalContent = () => {
+    // Get daily quote
+    const quote = MotivationalQuotesService.getDailyQuote();
+    setDailyQuote(quote);
+
+    // Get daily motivational image
+    const image = MotivationalImagesService.getDailyImage();
+    setDailyImage(image);
+  };
+
+  const updateMotivationalMessage = (todayData, streak) => {
+    const message = MotivationalQuotesService.getMotivationalMessage(
+      streak,
+      todayData?.totalHours || 0
+    );
+    setMotivationalMessage(message);
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -106,6 +136,14 @@ const Dashboard = () => {
         const sessionsData = await sessionsResponse.json();
         setRecentSessions(sessionsData.filter((s) => s.endTime).slice(0, 5));
       }
+
+      // Update motivational message after data is loaded
+      setTimeout(() => {
+        if (todayStats && dailySummary.length > 0) {
+          const streak = calculateStreak();
+          updateMotivationalMessage(todayStats, streak);
+        }
+      }, 500);
     } catch (err) {
       setError("Failed to fetch dashboard data");
     } finally {
@@ -247,12 +285,45 @@ const Dashboard = () => {
     .reverse();
   return (
     <div className="dashboard-container fade-in-up">
-      {/* Hero Header */}
+      {/* Enhanced Hero Header with Quote and Motivational Image */}
       <div className="dashboard-hero">
-        <div>
+        <div className="hero-content">
           <div className="dashboard-title">Learning Hub</div>
-          <div className="dashboard-subtitle">{getMotivationalMessage()}</div>
+          <div className="dashboard-subtitle">
+            {motivationalMessage ||
+              "Welcome back, Bikash Shaw! Ready to learn?"}
+          </div>
+
+          {/* Daily Motivational Quote Section */}
+          {dailyQuote && (
+            <div className="daily-quote-section">
+              <div className="quote-container">
+                <Quote className="quote-icon" size={24} />
+                <div className="quote-content">
+                  <div className="quote-text">"{dailyQuote.quote}"</div>
+                  <div className="quote-author">— {dailyQuote.author}</div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Daily Motivational Image */}
+        {dailyImage && (
+          <div className="hero-image-section">
+            <img
+              src={dailyImage.url}
+              alt={dailyImage.alt}
+              className="motivational-image"
+              onError={(e) => {
+                e.target.src =
+                  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80";
+              }}
+            />
+            <div className="image-overlay"></div>
+          </div>
+        )}
+
         <div className="dashboard-date">
           <Calendar className="me-2" size={20} />
           {new Date().toLocaleDateString("en-US", {
@@ -263,33 +334,85 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Stat Cards */}
+      {/* Enhanced Stat Cards */}
       <Row className="mb-4">
         <Col md={4}>
-          <div className="stat-card">
-            <div className="icon">
-              <Timer />
+          <div className="stat-card enhanced-stat-card">
+            <div className="stat-header">
+              <div className="icon">
+                <Timer />
+              </div>
+              <div className="stat-trend">
+                {todayStats?.totalHours > 0 ? (
+                  <Badge bg="success" className="trend-badge">
+                    +{todayStats?.sessionsCount || 0} sessions
+                  </Badge>
+                ) : (
+                  <Badge bg="secondary" className="trend-badge">
+                    No sessions
+                  </Badge>
+                )}
+              </div>
             </div>
-            <div className="stat-number">{todayStats?.totalHours || 0}h</div>
-            <div className="stat-label">Today</div>
+            <div className="stat-content">
+              <div className="stat-number">{todayStats?.totalHours || 0}h</div>
+              <div className="stat-label">Today's Learning</div>
+              <div className="stat-detail">
+                {todayStats?.totalMinutes
+                  ? `${Math.floor(todayStats.totalMinutes / 60)}h ${
+                      todayStats.totalMinutes % 60
+                    }m`
+                  : "Start your first session!"}
+              </div>
+            </div>
           </div>
         </Col>
         <Col md={4}>
-          <div className="stat-card">
-            <div className="icon">
-              <TrendingUp />
+          <div className="stat-card enhanced-stat-card">
+            <div className="stat-header">
+              <div className="icon">
+                <TrendingUp />
+              </div>
+              <div className="stat-trend">
+                <Badge bg="info" className="trend-badge">
+                  7 days
+                </Badge>
+              </div>
             </div>
-            <div className="stat-number">{analytics?.totalHours || 0}h</div>
-            <div className="stat-label">This Week</div>
+            <div className="stat-content">
+              <div className="stat-number">{analytics?.totalHours || 0}h</div>
+              <div className="stat-label">This Week</div>
+              <div className="stat-detail">
+                {analytics?.totalSessions || 0} sessions completed
+              </div>
+            </div>
           </div>
         </Col>
         <Col md={4}>
-          <div className="stat-card">
-            <div className="icon">
-              <Trophy />
+          <div className="stat-card enhanced-stat-card">
+            <div className="stat-header">
+              <div className="icon">
+                <Trophy />
+              </div>
+              <div className="stat-trend">
+                {calculateStreak() >= 3 ? (
+                  <Badge bg="warning" className="trend-badge">
+                    🔥 Hot!
+                  </Badge>
+                ) : (
+                  <Badge bg="primary" className="trend-badge">
+                    Building
+                  </Badge>
+                )}
+              </div>
             </div>
-            <div className="stat-number">{calculateStreak()}</div>
-            <div className="stat-label">Day Streak</div>
+            <div className="stat-content">
+              <div className="stat-number">{calculateStreak()}</div>
+              <div className="stat-label">Day Streak</div>
+              <div className="stat-detail">
+                {calculateStreak() > 0 ? "Keep it going!" : "Start today!"}
+              </div>
+            </div>
           </div>
         </Col>
       </Row>

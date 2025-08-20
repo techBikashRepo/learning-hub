@@ -10,39 +10,91 @@ import {
   Alert,
 } from "react-bootstrap";
 import { Calendar, momentLocalizer } from "react-big-calendar";
+import { useNavigate } from "react-router-dom";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
 const localizer = momentLocalizer(moment);
-
-const colors = {
-  AWS: "#FF6B6B",
-  "System Design": "#4ECDC4",
-  DSA: "#45B7D1",
-  Docker: "#96CEB4",
-  "AWS Revision": "#FECA57",
-  "System Design Revision": "#FF9FF3",
-  "DSA Revision": "#54A0FF",
-  "Docker Revision": "#5F27CD",
-};
 
 const CalendarView = () => {
   const [events, setEvents] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    // Clear any expired token on component mount
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        // Check if token is expired (basic check)
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const now = Date.now() / 1000;
+        if (payload.exp && payload.exp < now) {
+          localStorage.removeItem("token");
+          setError("Session expired. Please log in again.");
+          setTimeout(() => navigate("/login"), 3000);
+          return;
+        }
+      } catch (err) {
+        // Invalid token format
+        localStorage.removeItem("token");
+      }
+    }
+
     fetchStudySessions();
-  }, []);
+  }, [navigate]);
 
   const fetchStudySessions = async () => {
     try {
-      const response = await fetch("/api/study-sessions", {
+      setLoading(true);
+      setError(""); // Clear any previous errors
+
+      // Check if user is logged in
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Please log in to view your study sessions.");
+        setEvents([]);
+        setLoading(false);
+        // Auto-redirect to login after 3 seconds
+        setTimeout(() => {
+          navigate("/login");
+        }, 3000);
+        return;
+      }
+
+      // First test server connectivity
+      const healthResponse = await fetch("http://localhost:5000/api/health");
+      if (!healthResponse.ok) {
+        throw new Error("Server not accessible");
+      }
+
+      const apiBaseUrl =
+        process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api";
+      const response = await fetch(`${apiBaseUrl}/study-sessions`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
       });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          setError("Session expired. Please log in again.");
+          localStorage.removeItem("token");
+          setEvents([]);
+          setLoading(false);
+          // Auto-redirect to login after 3 seconds
+          setTimeout(() => {
+            navigate("/login");
+          }, 3000);
+          return;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const sessions = await response.json();
 
       // Convert completed study sessions to calendar events
@@ -65,10 +117,31 @@ const CalendarView = () => {
         });
 
       setEvents(sessionEvents);
+      setLoading(false);
     } catch (err) {
-      setError("Failed to fetch study sessions");
       console.error("Error fetching study sessions:", err);
+      // Show empty calendar when API fails
+      setEvents([]);
+      setLoading(false);
+
+      if (
+        err.message.includes("fetch") ||
+        err.message.includes("not accessible")
+      ) {
+        setError(
+          "Unable to connect to server. Please ensure the backend server is running on port 5000."
+        );
+      } else {
+        setError(`Error loading study sessions: ${err.message}`);
+      }
     }
+  };
+
+  const handleClearSession = () => {
+    localStorage.removeItem("token");
+    setError("");
+    setEvents([]);
+    navigate("/login");
   };
 
   const handleSelectEvent = (event) => {
@@ -115,8 +188,8 @@ const CalendarView = () => {
   };
 
   const CustomToolbar = ({ label, onNavigate, onView }) => (
-    <div className="d-flex justify-content-between align-items-center mb-3">
-      <div>
+    <div className="calendar-toolbar d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+      <div className="d-flex align-items-center">
         <Button
           variant="outline-primary"
           size="sm"
@@ -126,7 +199,7 @@ const CalendarView = () => {
           ‹ Prev
         </Button>
         <Button
-          variant="outline-primary"
+          variant="primary"
           size="sm"
           onClick={() => onNavigate("TODAY")}
           className="me-2"
@@ -141,13 +214,15 @@ const CalendarView = () => {
           Next ›
         </Button>
       </div>
-      <h4 className="mb-0">{label}</h4>
-      <div>
+      <h3 className="mb-0 text-center flex-grow-1 fw-bold text-primary">
+        {label}
+      </h3>
+      <div className="d-flex align-items-center gap-1">
         <Button
           variant="outline-secondary"
           size="sm"
           onClick={() => onView("month")}
-          className="me-2"
+          className="px-3"
         >
           Month
         </Button>
@@ -155,7 +230,7 @@ const CalendarView = () => {
           variant="outline-secondary"
           size="sm"
           onClick={() => onView("week")}
-          className="me-2"
+          className="px-3"
         >
           Week
         </Button>
@@ -163,6 +238,7 @@ const CalendarView = () => {
           variant="outline-secondary"
           size="sm"
           onClick={() => onView("day")}
+          className="px-3"
         >
           Day
         </Button>
@@ -174,29 +250,66 @@ const CalendarView = () => {
     <Container fluid>
       <Row className="mb-4">
         <Col>
-          <div className="d-flex justify-content-between align-items-center">
-            <h2>📅 Study Calendar</h2>
-            <div>
-              <Badge bg="info" className="me-2">
-                Completed Study Sessions
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h2 className="mb-0">📅 Study Calendar</h2>
+            <div className="d-flex align-items-center gap-2">
+              <Badge bg="info" className="px-3 py-2">
+                {events.length} Completed Sessions
               </Badge>
               <Button
                 variant="outline-primary"
                 size="sm"
                 onClick={fetchStudySessions}
+                className="px-3"
+                disabled={loading}
               >
-                Refresh
+                🔄 Refresh
+              </Button>
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={handleClearSession}
+                className="px-3"
+              >
+                🚪 Logout
               </Button>
             </div>
           </div>
-          <p className="text-muted">
+          <p className="text-muted mb-0">
             This calendar shows your completed study sessions. Use the Study
             Timer to track new sessions.
           </p>
         </Col>
       </Row>
 
-      {error && <Alert variant="danger">{error}</Alert>}
+      {error && (
+        <Alert
+          variant="danger"
+          className="d-flex justify-content-between align-items-center"
+        >
+          <span>{error}</span>
+          {(error.includes("Please log in") ||
+            error.includes("Session expired")) && (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => navigate("/login")}
+              className="ms-2"
+            >
+              Login Now
+            </Button>
+          )}
+        </Alert>
+      )}
+
+      {loading && (
+        <Alert variant="info" className="d-flex align-items-center">
+          <div className="spinner-border spinner-border-sm me-2" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          Loading study sessions...
+        </Alert>
+      )}
 
       <Row>
         <Col>
@@ -216,6 +329,14 @@ const CalendarView = () => {
                 defaultView="month"
                 popup
                 style={{ height: "100%" }}
+                min={new Date(0, 0, 0, 0, 0, 0)}
+                max={new Date(0, 0, 0, 23, 59, 59)}
+                step={60}
+                timeslots={1}
+                dayPropGetter={(date) => ({
+                  className: "",
+                  style: {},
+                })}
               />
             </Card.Body>
           </Card>

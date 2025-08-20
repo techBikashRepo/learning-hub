@@ -10,7 +10,7 @@ import {
 } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 
-const Register = () => {
+const Register = ({ setIsAuthenticated, setUser }) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -43,6 +43,8 @@ const Register = () => {
       if (response.ok) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
+        setIsAuthenticated(true);
+        setUser(data.user);
         navigate("/dashboard");
       } else {
         setError(data.message || "Registration failed");

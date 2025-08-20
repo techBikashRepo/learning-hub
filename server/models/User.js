@@ -27,12 +27,22 @@ const UserSchema = new mongoose.Schema({
 
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
-  this.password = await bcrypt.hash(this.password, 12);
-  next();
+
+  try {
+    const saltRounds = 10;
+    this.password = bcrypt.hashSync(this.password, saltRounds);
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
-UserSchema.methods.comparePassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+UserSchema.methods.comparePassword = function (candidatePassword) {
+  try {
+    return bcrypt.compareSync(candidatePassword, this.password);
+  } catch (error) {
+    return false;
+  }
 };
 
 module.exports = mongoose.model("User", UserSchema);
