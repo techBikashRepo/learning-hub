@@ -137,13 +137,6 @@ const CalendarView = () => {
     }
   };
 
-  const handleClearSession = () => {
-    localStorage.removeItem("token");
-    setError("");
-    setEvents([]);
-    navigate("/login");
-  };
-
   const handleSelectEvent = (event) => {
     if (event.type === "study-session") {
       setSelectedEvent(event.resource);
@@ -264,14 +257,6 @@ const CalendarView = () => {
                 disabled={loading}
               >
                 🔄 Refresh
-              </Button>
-              <Button
-                variant="outline-secondary"
-                size="sm"
-                onClick={handleClearSession}
-                className="px-3"
-              >
-                🚪 Logout
               </Button>
             </div>
           </div>
