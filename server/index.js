@@ -4,7 +4,19 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 
 const app = express();
-app.use(cors());
+
+// CORS configuration for production
+const corsOptions = {
+  origin: [
+    "http://localhost:3000", // Development
+    "https://your-app-name.vercel.app", // Production - Update this after Vercel deployment
+    /\.vercel\.app$/ // Allow all Vercel apps during development
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
